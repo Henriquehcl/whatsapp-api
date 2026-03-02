@@ -50,7 +50,12 @@ app.use(cors({
 app.use(compression());
 
 // Parsing de JSON com limite aumentado
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({
+  limit: '10mb',
+  verify: (req, _res, buf) => {
+    (req as any).rawBody = buf.toString('utf8');
+  },
+}));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Logging de requisicoes (Morgan + Winston)

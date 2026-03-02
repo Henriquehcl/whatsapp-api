@@ -23,6 +23,9 @@ export function createWhatsAppRoutes(
   router.get('/webhook', webhookController.verifyWebhook.bind(webhookController));
   router.post('/webhook', webhookController.handleWebhook.bind(webhookController));
   router.get('/webhook/health', webhookController.healthCheck.bind(webhookController));
+  router.get('/api/v1/webhook', webhookController.verifyWebhook.bind(webhookController));
+  router.post('/api/v1/webhook', webhookController.handleWebhook.bind(webhookController));
+  router.get('/api/v1/webhook/health', webhookController.healthCheck.bind(webhookController));
 
   /**
    * Rotas protegidas por autenticação

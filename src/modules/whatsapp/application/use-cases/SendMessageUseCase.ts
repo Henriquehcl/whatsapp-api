@@ -17,6 +17,7 @@ import { Message } from '../../domain/entities/Message';
 import { Conversation } from '../../domain/entities/Conversation';
 import { ValidationError, ExternalServiceError } from '@/shared/errors/AppError';
 import logger from '@/shared/logger';
+import { env } from '@/main/config/env';
 import { z } from 'zod';
 
 // Interface para o resultado do caso de uso
@@ -53,7 +54,7 @@ export class SendMessageUseCase {
         tenantId,
         direction: 'outbound',
         type: validatedData.type,
-        from: '', // Será preenchido pelo adaptador da Meta
+        from: env.META_PHONE_NUMBER_ID,
         to: validatedData.to,
         content: validatedData.content,
       });

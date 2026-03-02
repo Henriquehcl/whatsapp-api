@@ -49,6 +49,7 @@ export class MessageController {
       // Retorna resposta
       ApiResponse.created(res, result);
     } catch (error) {
+      logger.error('Erro ao enviar mensagem', { error });
       next(error);
     }
   }

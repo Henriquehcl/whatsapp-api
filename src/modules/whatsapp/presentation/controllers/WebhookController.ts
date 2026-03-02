@@ -23,16 +23,22 @@ export class WebhookController {
    */
   async verifyWebhook(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const mode = req.query['hub.mode'];
-      const token = req.query['hub.verify_token'];
-      const challenge = req.query['hub.challenge'];
+      const mode = Array.isArray(req.query['hub.mode'])
+        ? req.query['hub.mode'][0]
+        : req.query['hub.mode'];
+      const token = Array.isArray(req.query['hub.verify_token'])
+        ? req.query['hub.verify_token'][0]
+        : req.query['hub.verify_token'];
+      const challenge = Array.isArray(req.query['hub.challenge'])
+        ? req.query['hub.challenge'][0]
+        : req.query['hub.challenge'];
 
       logger.info('Verificando webhook', { mode, token });
 
       // Verifica se é uma requisição de verificação
-      if (mode === 'subscribe' && token === env.META_VERIFY_TOKEN) {
+      if (mode === 'subscribe' && token === env.META_VERIFY_TOKEN && challenge) {
         logger.info('Webhook verificado com sucesso');
-        res.status(200).send(challenge);
+        res.status(200).send(String(challenge));
       } else {
         throw new UnauthorizedError('Falha na verificação do webhook');
       }
@@ -50,6 +56,13 @@ export class WebhookController {
       const signature = req.headers['x-hub-signature-256'] as string;
       const tenantId = req.headers['x-tenant-id'] as string || 'default';
 
+      console.log('===== WEBHOOK RECEBIDO =====');
+
+    console.log('Headers:', req.headers);
+
+    console.log('Body:');
+    console.log(JSON.stringify(req.body, null, 2));
+
       // Valida presença do body
       if (!req.body) {
         throw new ValidationError('Body vazio');
@@ -61,7 +74,10 @@ export class WebhookController {
           throw new UnauthorizedError('Assinatura não fornecida');
         }
 
-        const bodyString = JSON.stringify(req.body);
+        console.log('Signature recebida:', { signature });
+
+        const bodyString = ((req as Request & { rawBody?: string }).rawBody)
+          ?? JSON.stringify(req.body);
         const isValid = this.metaApiAdapter.verifyWebhookSignature(
           signature,
           bodyString,
@@ -73,7 +89,7 @@ export class WebhookController {
         }
       }
 
-      logger.info('Webhook recebido', {
+      console.log('Webhook recebido', {
         tenantId,
         object: req.body.object,
       });
@@ -84,6 +100,8 @@ export class WebhookController {
         tenantId,
         signature,
       );
+
+      console.log('Resultado do processamento:', result);
 
       // Meta espera resposta 200 OK mesmo se houver erros
       ApiResponse.success(res, {

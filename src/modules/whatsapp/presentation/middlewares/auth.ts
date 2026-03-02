@@ -55,6 +55,23 @@ export const authMiddleware = (
       throw new UnauthorizedError('Formato de token inválido');
     }
 
+    // Modo alternativo: token estático de API (útil para testes locais e integrações server-to-server)
+    if (env.API_AUTH_TOKEN && token === env.API_AUTH_TOKEN) {
+      const tenantIdFromHeader = req.headers['x-tenant-id'];
+      const tenantId = typeof tenantIdFromHeader === 'string' && tenantIdFromHeader.length > 0
+        ? tenantIdFromHeader
+        : 'default';
+
+      req.user = {
+        id: 'api-token-user',
+        tenantId,
+        role: 'service',
+      };
+
+      next();
+      return;
+    }
+
     // Verifica e decodifica o token
     const decoded = jwt.verify(token, env.JWT_SECRET) as JwtPayload;
 
