@@ -14,7 +14,7 @@ export class MetaApiAdapter implements IMetaApiAdapter {
   private api: AxiosInstance;
   private readonly phoneNumberId: string;
   private readonly accessToken: string;
-  private readonly appSecret: string;
+  private readonly appSecret?: string;
 
   constructor() {
     this.phoneNumberId = env.META_PHONE_NUMBER_ID;
@@ -165,6 +165,11 @@ export class MetaApiAdapter implements IMetaApiAdapter {
    */
   verifyWebhookSignature(signature: string, body: string): boolean {
     try {
+      if (!this.appSecret) {
+        logger.warn('META_APP_SECRET não configurado; assinatura do webhook não pode ser validada');
+        return false;
+      }
+
       const expectedSignature = crypto
         .createHmac('sha256', this.appSecret)
         .update(body)

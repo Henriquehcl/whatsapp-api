@@ -23,7 +23,7 @@ const envSchema = z.object({
   META_ACCESS_TOKEN: z.string().min(1, 'META_ACCESS_TOKEN é obrigatório'),
   META_PHONE_NUMBER_ID: z.string().min(1, 'META_PHONE_NUMBER_ID é obrigatório'),
   META_VERIFY_TOKEN: z.string().min(1, 'META_VERIFY_TOKEN é obrigatório'),
-  META_APP_SECRET: z.string().min(1, 'META_APP_SECRET é obrigatório'),
+  META_APP_SECRET: z.string().optional(),
   
   // JWT
   JWT_SECRET: z.string().min(32, 'JWT_SECRET deve ter no mínimo 32 caracteres'),
@@ -43,7 +43,15 @@ export type EnvConfig = z.infer<typeof envSchema>;
 // Função para validar e obter as configurações
 function validateEnv(): EnvConfig {
   try {
-    return envSchema.parse(process.env);
+    const parsedEnv = envSchema.parse(process.env);
+
+    if (parsedEnv.NODE_ENV === 'production' && !parsedEnv.META_APP_SECRET) {
+      throw new Error(
+        '❌ Variáveis de ambiente inválidas:\nMETA_APP_SECRET - é obrigatório em produção para validar assinatura do webhook',
+      );
+    }
+
+    return parsedEnv;
   } catch (error) {
     if (error instanceof z.ZodError) {
       const missingVars = error.errors.map(err => `${err.path.join('.')} - ${err.message}`).join('\n');

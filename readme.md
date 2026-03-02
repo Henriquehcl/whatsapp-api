@@ -113,6 +113,8 @@ docker-compose down
 
 ## 🔧 Configuração do WhatsApp Meta
 
+Guia completo atualizado: [docs/meta-whatsapp-cloud-api-setup.md](docs/meta-whatsapp-cloud-api-setup.md)
+
 ### 1. Criar Aplicativo
 
 -   Acesse developers.facebook.com\
